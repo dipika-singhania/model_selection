@@ -25,6 +25,7 @@ from tqdm import tqdm
 import sys
 
 from datasets.image_classification.cars import load_cars
+from models.image_classification.models_pool import ModelsZoo
 
 class DNN():
     def __init__(self, device='cpu', model_name='resnet18', layer_output_size=512, batch_size=128, max_epochs=20, log_file_name=None, models_save_dir="model_dumps/"):
@@ -33,6 +34,7 @@ class DNN():
         self.model_name = model_name
         self.batch_size = batch_size
         self.max_epochs = max_epochs
+        self.model_zoo = ModelsZoo()
         self.model = self._build_model(model_name, layer_output_size)
         self.optimizer = self.create_optim()
         # Decay LR by a factor of 0.1 every 7 epochs
@@ -50,6 +52,7 @@ class DNN():
         self.curr_epoch = 0
 
         self.run_dict = self.update_initial_dict()
+
 
     def update_initial_dict(self):
         return {'model_name': self.model_name, 'model_params':self.get_params(), 'num_classes': self.num_classes} 
@@ -219,10 +222,7 @@ class DNN():
         self.train(train_loader, test_loader)
 
     def _build_model(self, model_name, num_classes):
-        method_to_call = getattr(models, model_name)
-        model = method_to_call(pretrained=True)
-        num_ftrs = model.fc.in_features
-        model.fc = nn.Linear(num_ftrs, num_classes)
+        model = self.model_zoo.get_modified_model(model_name, num_classes)
         model = model.to(device)
         return model
 
@@ -232,13 +232,17 @@ if __name__ == '__main__':
                         help='Path(s) to query image(s), delimited by commas')
     parser.add_argument('--final_log', type=str, help="Final log storage")
     parser.add_argument('--model_save_dir', type=str, help="Model save dir", default="model_dumps/")
-    parser.add_argument('--model_name', type=str, help="Pytorch model name to run", default="resnet18")
+    parser.add_argument('--model_name', type=str, 
+                        choices=['resnet','alexnet','vgg16','densenet161', 'shufflenet', 'mobilenet', 'resnext50', 'mnasnet'], 
+                        help="Pytorch model name to run", default="resnet18")
+    parser.add_argument('--batch_size', type=float, help="batch_size of model")
     (args, _) = parser.parse_known_args()
 
     train_loader,valid_loader, test_loader, class_size = load_cars('data/')
 
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    dnn = DNN(device, args.model_name, class_size, 128, 100, args.log_file_name, args.model_save_dir)
+    # log_file_name=None, models_save_dir=
+    dnn = DNN(device, args.model_name, class_size, batch_size=64, max_epochs=100, log_file_name = args.log_file_name, models_save_dir = args.model_save_dir)
     dnn.train(train_loader, valid_loader)
     dict_params = dnn.get_dict()
     
