@@ -54,8 +54,12 @@ class DNN():
     def update_initial_dict(self):
         return {'model_name': self.model_name, 'model_params':self.get_params(), 'num_classes': self.num_classes} 
 
-    def create_optim(self):
-        return torch.optim.Adam(self.model.parameters(), lr=0.001, betas=(0.99, 0.999))  
+    def create_optim(self, name='Adam', params={'lr':0.001, 'beta_0':0.9, 'beta_1':0.999}):
+        if name == 'SGD':
+            return torch.optim.SGD(self.model.parameters(), lr=params['lr'], momentum=params['momentum'])
+        elif name == 'Adam':
+            return torch.optim.Adam(self.model.parameters(), lr=params['lr'], betas=(params['beta_0'], params['beta_1']))
+
 
     def create_criteria(self):
         return nn.CrossEntropyLoss()
@@ -216,7 +220,7 @@ class DNN():
 
     def _build_model(self, model_name, num_classes):
         method_to_call = getattr(models, model_name)
-        model = models.resnet18(pretrained=True)
+        model = method_to_call(pretrained=True)
         num_ftrs = model.fc.in_features
         model.fc = nn.Linear(num_ftrs, num_classes)
         model = model.to(device)
