@@ -24,6 +24,7 @@ import matplotlib.pyplot as plt
 import argparse
 import io
 from torch.utils.data.dataloader import default_collate
+from get_labels_to_vec import get_word_list_embeddings, add_vector_to_file
 # Ignore warnings
 import warnings
 
@@ -49,16 +50,7 @@ class CarsDataset(Dataset):
         self.car_names = np.array(self.car_names[0])
 
         self.data_dir = data_dir
-        if transform is None:
-            self.transform = transforms.Compose([
-                                                  transforms.Scale(250),
-                                                  transforms.RandomSizedCrop(224),
-                                                  transforms.RandomHorizontalFlip(),
-                                                  transforms.ToTensor(),
-                                                  transforms.Normalize((0.4706145, 0.46000465, 0.45479808), (0.26668432, 0.26578658, 0.2706199))
-                                          ])
-        else:
-           self.transform = transform 
+        self.transform = transform
 
         self.no_labels = no_labels
 
@@ -84,6 +76,14 @@ class CarsDataset(Dataset):
 
     def get_num_of_class(self):
         return len(self.car_names)
+
+    def get_cars_features(self):
+        img_name = os.path.join(self.data_dir, self.car_annotations[0][-1][0])
+        img_height, img_width, _ = np.array(Image.open(img_name)).shape
+        total_train_size = len(self.car_annotations)
+        num_of_classes = self.get_num_of_class()
+        dataset_feature = get_word_list_embeddings(self.car_names) 
+        add_vector_to_file('cars', img_height, img_width, total_train_size, num_of_classes, dataset_feature)
 
     def get_label_dict(self):
         labels_dict = {}
@@ -136,15 +136,15 @@ def download_cars_data(dataset_train_url, dataset_test_url, dataset_annotations_
         tf.extractall(data_dir)
 
 
-def load_cars(data_dir, validation_split = 0.2):
+def load_cars(data_dir, transform=None, validation_split = 0.2, batch_size=256):
     train_dataset_path = os.path.join(data_dir, 'cars_train')
     test_dataset_path = os.path.join(data_dir, 'cars_test')
     meta_csv_path = os.path.join(data_dir, 'devkit')
     train_dataset_url = 'http://imagenet.stanford.edu/internal/car196/cars_train.tgz'
     test_dataset_url = 'http://imagenet.stanford.edu/internal/car196/cars_test.tgz'
     meta_datset_url = 'https://ai.stanford.edu/~jkrause/cars/car_devkit.tgz'
-    train_batch_size = 200
-    test_batch_size = 200
+    train_batch_size = batch_size
+    test_batch_size = batch_size
     train_workers = 4
     test_workers = 4
     download_cars_data(train_dataset_url, test_dataset_url, meta_datset_url, train_dataset_path, test_dataset_path,
@@ -162,17 +162,26 @@ def load_cars(data_dir, validation_split = 0.2):
     full_test_set = scipy.io.loadmat(os.path.join(meta_csv_path, 'cars_test_annos.mat'))
     test_cars_anno = full_data_set['annotations'][0]
 
-    cars_data_train = CarsDataset(train_cars_anno, train_dataset_path, os.path.join(meta_csv_path, 'cars_meta.mat'), None, False)
+    if transform is None:
+        normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                                         std=[0.229, 0.224, 0.225])
+        transform = transforms.Compose([
+                                           transforms.Scale((224, 224)),
+                                           transforms.ToTensor(),
+                                           normalize, 
+                                       ])
+    cars_data_train = CarsDataset(train_cars_anno, train_dataset_path, os.path.join(meta_csv_path, 'cars_meta.mat'), transform, False)
 
-    cars_data_val = CarsDataset(valid_cars_anno, train_dataset_path, os.path.join(meta_csv_path, 'cars_meta.mat'), None, False)
+    cars_data_val = CarsDataset(valid_cars_anno, train_dataset_path, os.path.join(meta_csv_path, 'cars_meta.mat'), transform, False)
 
-    cars_data_test = CarsDataset(test_cars_anno, test_dataset_path, os.path.join(meta_csv_path, 'cars_meta.mat'), None, True)
+    cars_data_test = CarsDataset(test_cars_anno, test_dataset_path, os.path.join(meta_csv_path, 'cars_meta.mat'), transform, True)
 
     get_ele = cars_data_train.__getitem__(1)
     print("Got element with label = ", get_ele[1])
     # for i in range(len(cars_data_test)):
     #     get_ele = cars_data_test.__getitem__(i)
     #     print(get_ele)
+    features_list = cars_data_train.get_cars_features()
 
 
     trainloader = DataLoader(cars_data_train, batch_size=train_batch_size,
@@ -195,5 +204,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--data_dir', type=str, default='data')
     parser.add_argument('--validation_split', type=float, default=0.2)
+    parser.add_argument('--batch_size', type=float, default=64, help="batch_size of model")
     args = parser.parse_args()
-    load_cars(args.data_dir, args.validation_split)
+    load_cars(args.data_dir, None, args.validation_split, args.batch_size)

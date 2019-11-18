@@ -4,6 +4,7 @@ import torch.nn as nn
 
 class ModelsZoo():
     def __init__(self):
+        """
         self.models_dict = {
                 'resnet': models.resnet18(pretrained=True),
                 'alexnet': models.alexnet(pretrained=True),
@@ -13,8 +14,16 @@ class ModelsZoo():
                 'shufflenet': models.shufflenet_v2_x0_5(pretrained=True),
                 'mobilenet': models.mobilenet_v2(pretrained=True),
                 'resnext50': models.resnext50_32x4d(pretrained=True),
-                'mnasnet': models.mnasnet0_5(pretrained=True)
+                'mnasnet': models.mnasnet0_5(pretrained=True),
+                'mnasnet0_75':models.mnasnet0_75(pretrained=True),
+                'mnasnet1_0':models.mnasnet1_0(pretrained=True),
+                'mnasnet1_3':models.mnasnet1_3(pretrained=True),
+                'resnet34':models.resnet34(pretrained=True),
+                'resnet50':models.resnet50(pretrained=True),
+                'resnet101':models.resnet101(pretrained=True),
+                'resnet152':models.resnet152(pretrained=True)
                 }
+        """
 
     def get_models_names_list(self):
         return self.models_dict.keys()
@@ -22,17 +31,23 @@ class ModelsZoo():
     def get_params(self, model):
        return sum(p.numel() for p in model.parameters())
     
-    def get_modified_model(self, model_name, class_size):
-        model = self.models_dict[model_name]
+    def get_modified_model(self, model_name, class_size, train_full=True):
+        method_to_call = getattr(models, model_name)
+        model = method_to_call(pretrained=True)
+
+        if train_full is False:
+            for param in model.parameters():
+                param.requires_grad = False
+
         print("Loading model with params = ", self.get_params(model))
-        if model_name in ['mnasnet', 'mobilenet', 'alexnet', 'vgg16']:
+        if model_name in ['mnasnet0_5', 'mnasnet0_75', 'mnasnet1_0', 'mnasnet1_3', 'mobilenet_v2', 'alexnet', 'vgg16']:
             in_features = model.classifier[-1].in_features
             model.classifier[-1] = nn.Linear(in_features, class_size)
         elif model_name in ['densenet161']:
             in_features = model.classifier.in_features
             model.classifier = nn.Linear(in_features, class_size)
 
-        elif model_name in ['resnet', 'resnext50', 'shufflenet']:
+        elif model_name in ['resnet18', 'resnet50', 'resnet101', 'resnet152','resnet34', 'resnext50', 'shufflenet']:
             in_features = model.fc.in_features
             model.fc = nn.Linear(in_features, class_size)
 

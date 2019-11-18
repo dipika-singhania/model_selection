@@ -25,18 +25,20 @@ from tqdm import tqdm
 import sys
 
 from datasets.image_classification.cars import load_cars
+from datasets.image_classification.pytorch_datasets import load_mnist, load_FashionMNIST, load_KMNIST, load_cifar10, load_cifar100
+
 from models.image_classification.models_pool import ModelsZoo
 
 class DNN():
-    def __init__(self, device='cpu', model_name='resnet18', layer_output_size=512, batch_size=128, max_epochs=20, log_file_name=None, models_save_dir="model_dumps/"):
+    def __init__(self, device='cpu', model_name='resnet18', layer_output_size=512, batch_size=128, max_epochs=20, log_file_name=None, models_save_dir="model_dumps/", optim_param={}, train_full=True):
         self.device = device
         self.layer_output_size = layer_output_size
         self.model_name = model_name
         self.batch_size = batch_size
         self.max_epochs = max_epochs
         self.model_zoo = ModelsZoo()
-        self.model = self._build_model(model_name, layer_output_size)
-        self.optimizer = self.create_optim()
+        self.model = self._build_model(model_name, layer_output_size, train_full)
+        self.optimizer = self.create_optim('Adam', optim_param)
         # Decay LR by a factor of 0.1 every 7 epochs
         self.criterion = self.create_criteria()
         self.loss_meter = ValueMeter()
@@ -183,9 +185,9 @@ class DNN():
         eval_data_size = 0
         with torch.set_grad_enabled(False):
             for inputs, labels in loader:
-                inputs = inputs.to(device)
+                inputs = inputs.to(self.device)
                 labels = labels.long()
-                labels = labels.to(device)
+                labels = labels.to(self.device)
                 eval_data_size += len(labels)
                 output = self.model(inputs)
                 loss   = self.criterion(output, labels)
@@ -217,13 +219,13 @@ class DNN():
     def resume_train(self, train_loader, test_loader):
         self.load_parameters()
         self.start_epoch = self.best_epoch
-        model = model.to(device)
+        model = model.to(self.device)
         self.model.train()
         self.train(train_loader, test_loader)
 
-    def _build_model(self, model_name, num_classes):
-        model = self.model_zoo.get_modified_model(model_name, num_classes)
-        model = model.to(device)
+    def _build_model(self, model_name, num_classes, train_full=True):
+        model = self.model_zoo.get_modified_model(model_name, num_classes, train_full)
+        model = model.to(self.device)
         return model
 
 if __name__ == '__main__':
@@ -233,18 +235,30 @@ if __name__ == '__main__':
     parser.add_argument('--final_log', type=str, help="Final log storage")
     parser.add_argument('--model_save_dir', type=str, help="Model save dir", default="model_dumps/")
     parser.add_argument('--model_name', type=str, 
-                        choices=['resnet','alexnet','vgg16','densenet161', 'shufflenet', 'mobilenet', 'resnext50', 'mnasnet'], 
-                        help="Pytorch model name to run", default="resnet18")
-    parser.add_argument('--batch_size', type=float, help="batch_size of model")
+                        choices=['resnet18','shufflenet_v2_x0_5', 'resnext50_32x4d', 'mnasnet0_5', 'mnasnet0_75', 'mnasnet1_0', 'mnasnet1_3', 'resnet34', 'resnext50', 'resnet101', 'resnet152'], help="Pytorch model name to run", default="resnet18")
+    parser.add_argument('--batch_size', type=float, default=64, help="batch_size of model")
+    parser.add_argument('--max_epoch', type=int, default=100, help="max epochs to run a model")
+    parser.add_argument('--lr', type=float, default=0.1, help="learning rate to run a model")
+    parser.add_argument('--train_full', action='store_true', help="Trains the full network")
     (args, _) = parser.parse_known_args()
 
-    train_loader,valid_loader, test_loader, class_size = load_cars('data/')
+    # train_loader,valid_loader, test_loader, class_size = load_cars('data/', batch_size=args.batch_size)
+    # train_loader,valid_loader, test_loader, class_size = load_mnist('data/', batch_size=args.batch_size)      
+    # train_loader,valid_loader, test_loader, class_size = load_FashionMNIST('data/', batch_size=args.batch_size)      
+    train_loader,valid_loader, test_loader, class_size = load_cifar100('data/', batch_size=args.batch_size)      
 
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
+
     # log_file_name=None, models_save_dir=
-    dnn = DNN(device, args.model_name, class_size, batch_size=64, max_epochs=100, log_file_name = args.log_file_name, models_save_dir = args.model_save_dir)
+    optim_param = {'lr': args.lr, 'beta_0': 0.9, 'beta_1':0.999}
+    dnn = DNN(device, args.model_name, class_size, batch_size=args.batch_size, max_epochs=args.max_epoch, log_file_name = args.log_file_name, models_save_dir = args.model_save_dir, optim_param=optim_param, train_full=args.train_full)
     dnn.train(train_loader, valid_loader)
     dict_params = dnn.get_dict()
+    # dict_params['dataset'] = 'mnist'
+    # dict_params['dataset'] = 'cars'
+    # dict_params['dataset'] = 'FashionMnist'
+    dict_params['dataset'] = 'Cifar10'
+
     
     with open(args.final_log, 'a+') as fp:
         json_string = json.dumps(dict_params)
