@@ -1,0 +1,9 @@
+model_name,model_params
+alexnet,57044810
+shufflenet_v2_x0_5,1366792
+resnet18,11181642
+mnasnet0_5,952634
+mobilenet_v2,2236682
+mnasnet1_0,3115122
+resnet34,21289802
+vgg16,134301514
