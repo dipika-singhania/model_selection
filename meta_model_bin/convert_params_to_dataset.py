@@ -3,6 +3,7 @@ import pandas as pd
 import csv
 import numpy as np
 
+
 class BuildDatasetModelCSV():
     def __init__(self, json_file, dataset_features_file, models_features_file, dataset_model_train_file):
         self.json_file = json_file
@@ -54,22 +55,18 @@ class BuildDatasetModelCSV():
                                               json_obj['model_params']]
         self.dump_model_features_files()
 
-
     def normalize_table(self):
         return       
 
-                
     def get_datasets_names(self):
         print("Dataset name :")
         print(";".join(self.datasets_name))
         return self.datasets_name
 
-
     def get_models_names(self):
         print("Models name :")
         print(";".join(self.models_name))
         return self.models_name
-
 
     def get_scores_target_table(self):
         header = ["dataset_name", "model_name_1", "model_name_2", "target"]
@@ -89,8 +86,7 @@ class BuildDatasetModelCSV():
                     target_table.append(row_)
         print("Total size of table =", len(target_table))
         return target_table, header
-    
-    
+
     def get_scores_target_table_permute(self):
         header = ["dataset_name", "model_name_1", "model_name_2", "target"]
         target_table = []
@@ -112,7 +108,6 @@ class BuildDatasetModelCSV():
         print("Total size of table =", len(target_table))
         return target_table, header
 
-
     def get_time_target_table(self):
         target_table = []
         header = ["dataset_name", "model_name_1", "model_name_2", "time_target"]
@@ -131,7 +126,6 @@ class BuildDatasetModelCSV():
                     target_table.append(row_)
         print("Total size of table =", len(target_table))
         return target_table, header
-        
 
     def print_table(self, file_name, target_table, header):
         with open(file_name, 'w') as fp:
@@ -159,7 +153,6 @@ class BuildDatasetModelCSV():
             target_feature_table.append(dataset_feature)
         print("Created target feature table ")
         return target_feature_table, header
-
 
     def load_model_features(self):
         if self.model_features is not None:
@@ -195,6 +188,7 @@ class BuildDatasetModelCSV():
 
     def get_ranked_list_of_model_runtime(self, dataset_name):
         return
+
 
 if __name__ == "__main__":
     json_dump_file = "logs/model_datasets_meta.json"

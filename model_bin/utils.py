@@ -56,6 +56,7 @@ def topk_accuracy(scores, labels, ks, selected_class=None):
     # trim to selected ks and compute accuracies
     return [tp[:, :k].max(1).mean() for k in ks]
 
+
 def topk_recall(scores, labels, k=5, classes=None):
     unique = np.unique(labels)
     if classes is None:

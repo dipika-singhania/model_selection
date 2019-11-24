@@ -61,7 +61,7 @@ class GTSRB(Dataset):
         return img, classId
 
 
-def load_traffic(data_dir, transform=None, validation_split = 0.2, batch_size=256, require_features=False):
+def load_traffic(data_dir, transform=None, validation_split = 0.2, batch_size=256, add_features=False):
     train_batch_size = batch_size
     test_batch_size = batch_size
     train_workers = 4
@@ -79,7 +79,7 @@ def load_traffic(data_dir, transform=None, validation_split = 0.2, batch_size=25
     valid_dataset = GTSRB(data_dir, False, transform)
 
     get_ele = train_dataset.__getitem__(1)
-    if require_features is True:
+    if add_features is True:
         train_dataset.get_features()
 
     trainloader = DataLoader(train_dataset, batch_size=train_batch_size,

@@ -2,7 +2,8 @@ import requests
 from tqdm import tqdm
 import os
 import tempfile
-import data_config
+import dataset_loaders.image_classification.data_config as data_config
+
 
 def download_dataset_from_url(dataset_url):
     '''
@@ -25,21 +26,3 @@ def download_dataset_from_url(dataset_url):
             f.write(data)
 
         return f.name
-
-def return_dataloader(data_name, root, batch_size):
-    '''
-    :param data_name: Name of the dataset
-    :return: a dictionary with keys 'name', 'train', 'valid', 'test'
-    '''
-    data_dict = data_config.DATA_DICTIONARY
-    if data_name not in data_dict:
-        print('Data name not present in dataset dictionary! Available datasets are')
-        for i, name in enumerate(data_dict.keys(), 1):
-            print('%d. %s'%(i, name))
-        print('''
-        If you intend to add a new dataset, please add a dataloader function in \'dataset_loaders\\image_classification\\\'
-        and add dictionary entry in \'dataset_loaders\\image_classification\\data_config.py\'
-        ''')
-    else:
-        load_fn = data_dict[data_name]
-        return load_fn(data_dir=root, batch_size=batch_size)

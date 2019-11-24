@@ -11,7 +11,6 @@ from itertools import chain
 from PIL import Image
 import math
 
-from dataset_loaders.image_classification.utils import download_dataset_from_url
 
 import sys
 import torch
@@ -25,6 +24,7 @@ import argparse
 import io
 from torch.utils.data.dataloader import default_collate
 from meta_model_bin.get_labels_to_vec import get_word_list_embeddings, add_vector_to_file
+from dataset_loaders.image_classification.utils import download_dataset_from_url
 # Ignore warnings
 import warnings
 
@@ -138,7 +138,7 @@ def download_cars_data(dataset_train_url, dataset_test_url, dataset_annotations_
         tf.extractall(data_dir)
 
 
-def load_cars(data_dir, transform=None, validation_split=0.2, batch_size=256):
+def load_cars(data_dir, transform=None, validation_split=0.2, batch_size=256, add_features=False):
     train_dataset_path = os.path.join(data_dir, 'cars_train')
     test_dataset_path = os.path.join(data_dir, 'cars_test')
     meta_csv_path = os.path.join(data_dir, 'devkit')
@@ -181,7 +181,8 @@ def load_cars(data_dir, transform=None, validation_split=0.2, batch_size=256):
     # for i in range(len(cars_data_test)):
     #     get_ele = cars_data_test.__getitem__(i)
     #     print(get_ele)
-    features_list = cars_data_train.get_cars_features()
+    if add_features:
+        cars_data_train.get_cars_features()
 
     trainloader = DataLoader(cars_data_train, batch_size=train_batch_size,
                              shuffle=True, num_workers=train_workers, collate_fn=my_collate)
@@ -196,7 +197,7 @@ def load_cars(data_dir, transform=None, validation_split=0.2, batch_size=256):
     print("Test data set length:", len(testloader))
 
     return {'train_loader': trainloader, 'validation_loader': validloader,
-            'test_loader': testloader, 'num_classes': cars_data_test.get_num_of_classes(), 'name': 'cars'}
+            'test_loader': validloader, 'num_classes': cars_data_test.get_num_of_class(), 'name': 'cars'}
 
 
 if __name__ == '__main__':

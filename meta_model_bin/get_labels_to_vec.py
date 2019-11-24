@@ -4,6 +4,7 @@ import os
 import pickle
 from sklearn.decomposition import PCA
 
+
 def load_glove_embed():
     embeddings_dict = {}
     
@@ -16,7 +17,7 @@ def load_glove_embed():
     return embeddings_dict
     
 
-def get_word_list_embeddings(dataset_name, words_list, update_pca=True):
+def get_word_list_embeddings(dataset_name, words_list, update_pca=False):
     embeddings_dict = load_glove_embed()
     vector_list = []
     for word in words_list:

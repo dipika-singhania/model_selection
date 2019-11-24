@@ -70,7 +70,7 @@ class Flower(Dataset):
         return img, classId
 
 
-def load_flower(data_dir, transform=None, validation_split=0.2, batch_size=256, create_features=False):
+def load_flower(data_dir, transform=None, validation_split=0.2, batch_size=256, add_features=False):
     train_batch_size = batch_size
     test_batch_size = batch_size
     train_workers = 4
@@ -88,7 +88,7 @@ def load_flower(data_dir, transform=None, validation_split=0.2, batch_size=256, 
     valid_dataset = Flower(data_dir, False, transform, validation_split)
 
     get_ele = train_dataset.__getitem__(1)
-    if create_features is True:
+    if add_features is True:
         train_dataset.get_features()
 
     trainloader = DataLoader(train_dataset, batch_size=train_batch_size,

@@ -2,23 +2,14 @@ from torchvision import models
 import torch
 import torch.nn as nn
 
-MODEL_DICTIONARY = {'resnet': {'pretrained': True},
-                    'alexnet': {'pretrained': True},
+MODEL_DICTIONARY = {'resnet18': {'pretrained': False},
+                    'alexnet': {'pretrained': False},
                     'vgg16': {'pretrained': True},
-                    'squeezenet': {'pretrained': True},
-                    'densenet161': {'pretrained': True},
-                    'shufflenet': {'pretrained': True},
-                    'mobilenet': {'pretrained': True},
-                    'resnext50': {'pretrained': True},
-                    'mnasnet': {'pretrained': True},
-                    'mnasnet0_75': {'pretrained': True},
-                    'mnasnet1_0': {'pretrained': True},
-                    'mnasnet1_3': {'pretrained': True},
-                    'resnet34': {'pretrained': True},
-                    'resnet50': {'pretrained': True},
-                    'inception_v3': {'pretrained': True},
-                    'resnet101': {'pretrained': True},
-                    'resnet152': {'pretrained': True}}
+                    'shufflenet_v2_x0_5': {'pretrained': False},
+                    'mobilenet_v2': {'pretrained': True},
+                    'mnasnet0_5': {'pretrained': False},
+                    'mnasnet1_0': {'pretrained': False},
+                    'resnet34': {'pretrained': False}}
 
 
 class ModelsZoo():

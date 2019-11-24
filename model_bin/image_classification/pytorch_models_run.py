@@ -19,8 +19,7 @@ from utils import ValueMeter, topk_accuracy, topk_recall, softmax
 import time
 import copy
 import json
-from dataset_loaders.image_classification.data_config import DATA_DICTIONARY
-from dataset_loaders.image_classification.utils import return_dataloader
+from dataset_loaders.image_classification.data_config import DATA_DICTIONARY, return_dataloader
 from PIL import Image
 from tqdm import tqdm
 import sys
@@ -304,11 +303,15 @@ if __name__ == '__main__':
     parser.add_argument('--train_full', action='store_true', help="Trains the full network")
     parser.add_argument('--dataset', choices=list(DATA_DICTIONARY.keys()), help="Name of the dataset")
     parser.add_argument('--data_dir', default='dataset_pool/', help="Data location")
+    parser.add_argument('--device', default=None, help="cpu / gpu")
 
     (args, _) = parser.parse_known_args()
 
-    dataset_dict = return_dataloader(root='dataset_pool/', batch_size=args.batch_size)
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    dataset_dict = return_dataloader(data_name=args.dataset, root=args.data_dir, batch_size=args.batch_size)
+    if args.device is None:
+        device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    else:
+        device = args.device
     optim_param = {'momentum': 0.8, 'lr': args.lr, 'beta_0': 0.9, 'beta_1': 0.999}
     dnn = DNN(device, model_name=args.model_name, batch_size=args.batch_size, max_epochs=args.max_epoch,
               dataset_dict=dataset_dict, log_file_name=args.log_file_name, models_save_dir=args.model_save_dir,
