@@ -124,12 +124,19 @@ if __name__ == '__main__':
     if args.dataset == '_all_':
         dataset_list = list(DATA_DICTIONARY.keys())
     else:
+        if args.dataset is None:
+            print("Setting to pick up default dataset cifar10")
+            args.dataset = 'cifar10'
         dataset_list = [args.dataset]
 
     if args.model_name == '_all_':
         model_list = list(MODEL_DICTIONARY.keys())
     else:
         model_list = [args.model_name]
+
+    if args.infer is False and args.train is False:
+        print("Setting to inference mode")
+        args.infer = True
 
     train_infer_all_models_in_all_dataset(device=device, model_list=model_list, dataset_list=dataset_list,
                                           train=args.train, evaluate=args.infer, resume=args.resume,

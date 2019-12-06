@@ -8,7 +8,7 @@ from sklearn.decomposition import PCA
 def load_glove_embed():
     embeddings_dict = {}
     
-    with open("/home/dipika16/CS6203/glove/glove.6B.300d.txt", 'r') as f:
+    with open("./glove/glove.6B.300d.txt", 'r') as f:
         for line in f:
             values = line.split()
             word = values[0]
@@ -29,16 +29,16 @@ def get_word_list_embeddings(dataset_name, words_list, update_pca=False):
                 vector_word = embeddings_dict[sub_word]
                 vector_list.append(vector_word)
 
-    target_embedding_file = '/home/dipika16/CS6203/meta_learning_features/target_embeddings/'
+    target_embedding_file = './meta_learning_features/target_embeddings/'
     target_embedding_file += dataset_name + '_target_embedding.pkl'
     with open(target_embedding_file, 'wb') as embedding_file:
         pickle.dump(vector_list, embedding_file)
         
-    if update_pca or (not os.path.exists('/home/dipika16/CS6203/meta_learning_features/pca_embedding.pkl')):
+    if update_pca or (not os.path.exists('./meta_learning_features/pca_embedding.pkl')):
         print('PCA generation will be performed')
         generate_PCA_for_target_embedding()
         
-    with open('/home/dipika16/CS6203/meta_learning_features/pca_embedding.pkl', 'rb') as pcafile:
+    with open('./meta_learning_features/pca_embedding.pkl', 'rb') as pcafile:
         pca_model = pickle.load(pcafile)
         
     pca_embedding = pca_model.transform(vector_list)
@@ -55,14 +55,14 @@ def add_vector_to_file(name, img_height, img_width, total_train_size, num_of_cla
     
     final_list = [name,img_height, img_width, total_train_size,num_of_classes]
     final_list.extend(labels_features.tolist())
-    csv_file_name = '/home/dipika16/CS6203/meta_learning_features/dataset.csv'
+    csv_file_name = './meta_learning_features/dataset.csv'
     with open(csv_file_name, "a") as csv_file:
         writer = csv.writer(csv_file, delimiter=',')
         writer.writerow(final_list)
         
     
 def generate_PCA_for_target_embedding():
-    directory = '/home/dipika16/CS6203/meta_learning_features/target_embeddings/'
+    directory = './meta_learning_features/target_embeddings/'
     files = [file for file in os.listdir(directory) if file.endswith('target_embedding.pkl')]
     embedding_list = []
     for file in files:
@@ -74,7 +74,7 @@ def generate_PCA_for_target_embedding():
     pca_embedding = PCA(n_components=5)
     pca_embedding.fit(embedding_list)
     
-    with open('/home/dipika16/CS6203/meta_learning_features/pca_embedding.pkl', 'wb') as pcafile:
+    with open('./meta_learning_features/pca_embedding.pkl', 'wb') as pcafile:
         pickle.dump(pca_embedding, pcafile)
     
     print('PCA has been performed')
