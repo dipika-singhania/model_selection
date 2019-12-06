@@ -104,9 +104,9 @@ if __name__ == '__main__':
     parser.add_argument('--model_name', type=str,
                         choices=list(MODEL_DICTIONARY.keys()) + ['_all_'], help="Pytorch model name to run",
                         default="resnet18")
-    parser.add_argument('--resume', action='store_true', help="Whether to resume training")
-    parser.add_argument('--overwrite', action='store_true', help="Whether to run overwrite")
-    parser.add_argument('--train', action='store_true', help="Whether to run train")
+    parser.add_argument('--resume', action='store_true', help="Whether to resume training by loading saved checkpoints")
+    parser.add_argument('--overwrite', action='store_true', help="Whether to overwrite existing saved checkpoints")
+    parser.add_argument('--train', action='store_true', help="Whether to train the model")
     parser.add_argument('--infer', action='store_true', help="Whether to run inference")
     parser.add_argument('--batch_size', type=float, default=64, help="batch_size of model")
     parser.add_argument('--max_epoch', type=int, default=100, help="max epochs to run a model")
