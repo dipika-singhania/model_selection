@@ -5,10 +5,12 @@ Automatic Model Selection
 For details of running codes, please refer to "CS6203.pdf"
 
 1. Initial Environment creation, one time
-cd model_selection
-conda env create -f environment.yml
-conda activate mdl
 
+cd model_selection
+
+conda env create -f environment.yml
+
+conda activate mdl
 
 1. First Step before running any command
 cd model_selection
